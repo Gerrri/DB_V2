@@ -36,7 +36,7 @@ public class ISAM_Verwaltung
 				{
 					System.out.println("Fehler. Die gesuchte Liste wurde nicht angelegt.");
 				}
-
+//MENUE
 			do
 				{
 					System.out.println("Willkommen im Menue:");
@@ -71,9 +71,9 @@ public class ISAM_Verwaltung
 				} while (choice != 0);
 
 		}
-
+// MENUE END
 	
-	// ISAM FILE
+	// ISAM FILE aus IDX Datei
 	public static void createISAMFile(LinkedList<ISAMArtikel> artikel) throws IOException
 		{
 
@@ -104,9 +104,9 @@ public class ISAM_Verwaltung
 			int artnr, steu;
 			String artbez, mge;
 			double preis;
-			String temp;
+			String csvTemp;
 			int laengeDerDatei;
-			ISAMArtikel liste;
+			ISAMArtikel new_Artikel;
 
 			System.out.println("Bitte geben sie die gewuenschte Artikelnr. ein: ");
 			artnr = Integer.parseInt(in.readLine());
@@ -132,12 +132,16 @@ public class ISAM_Verwaltung
 			System.out.println("Wie hoch ist der Steuersatzt? ");
 			steu = Integer.parseInt(in.readLine());
 
-			temp = (artnr + ";" + artbez + ";" + mge + ";" + preis + ";" + steu + " ");
+			csvTemp = (artnr + ";" + artbez + ";" + mge + ";" + preis + ";" + steu + " ");
 
 			laengeDerDatei = (int) raf.length();
-			liste = new ISAMArtikel(artnr, laengeDerDatei);
-			artikel.add(liste);
-			bw.write(temp);
+			
+			//neuen Artikel in die ISAM Liste aufnehmen
+			new_Artikel = new ISAMArtikel(artnr, laengeDerDatei);
+			artikel.add(new_Artikel);
+			
+			//neuen Artikel-CSV in ARTIKEL.DAT schreiben
+			bw.write(csvTemp);
 			bw.newLine();
 			bw.close();
 
