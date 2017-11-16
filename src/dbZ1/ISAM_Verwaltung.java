@@ -72,6 +72,8 @@ public class ISAM_Verwaltung
 
 		}
 
+	
+	// ISAM FILE
 	public static void createISAMFile(LinkedList<ISAMList> artikel) throws IOException
 		{
 
@@ -87,6 +89,9 @@ public class ISAM_Verwaltung
 				}
 		}
 
+	
+	// DATA METHODS
+	
 	static void addData(LinkedList artikel) throws IOException
 		{
 
@@ -113,18 +118,18 @@ public class ISAM_Verwaltung
 
 					if (e.getnr() == artnr)
 						{
-							System.out.println("Es ist ein Fehler aufgetreten. artikel ist bereits vorhanden");
+							System.out.println("Es ist ein Fehler aufgetreten. Artikel ist bereits vorhanden");
 							return;
 						}
 				}
 
 			System.out.println("Bitte geben Sie die gewuenschte Artikelbez. ein: ");
 			artbez = in.readLine();
-			System.out.println("Bitte geben Sie die gewunschte Mengen-Einheit ein: ");
+			System.out.println("Bitte geben Sie die gewuenschte Mengen-Einheit ein: ");
 			mge = in.readLine();
-			System.out.println("Bitte geben Sie den gewuenschte Preis ein: ");
+			System.out.println("Bitte geben Sie den gewuenschten Preis ein: ");
 			preis = Double.parseDouble(in.readLine());
-			System.out.println("Wie Hoch ist der Steuersatzt? ");
+			System.out.println("Wie hoch ist der Steuersatzt? ");
 			steu = Integer.parseInt(in.readLine());
 
 			buf = (artnr + ";" + artbez + ";" + mge + ";" + preis + ";" + steu + " ");
@@ -167,7 +172,7 @@ public class ISAM_Verwaltung
 			int artnr = 0;
 			try
 				{
-					System.out.println("Bitte geben Sie die gewunschte Artikelnr. ein:");
+					System.out.println("Bitte geben Sie die gewuenschte Artikelnr. ein:");
 					artnr = Integer.parseInt(in.readLine());
 				} catch (NumberFormatException e)
 				{
@@ -206,7 +211,7 @@ public class ISAM_Verwaltung
 			f.createNewFile();
 			//Datei sortieren
 			Collections.sort(artikel);
-			//aktuellen inhalt der Liste noch mal in der Datei reinschreiben
+			//aktuellen inhalt der Liste noch mal in Datei schreiben
 			for (int i = 0; i < artikel.size(); i++)
 				{
 					liste = (ISAMList) artikel.get(i);
@@ -214,7 +219,7 @@ public class ISAM_Verwaltung
 
 				}
 
-			pr.flush(); //gepuferte Daten schreiben
+			pr.flush(); //gepufferte Daten schreiben
 
 			pr.close();
 
