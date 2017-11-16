@@ -14,19 +14,19 @@ public class JDBC_Insert
 
 			treiber = "oracle.jdbc.driver.OracleDriver";
 			Connection dbConnection = null;
-String uName;
-String pW;
-BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-System.out.println("Please enter username: ");
-uName = in.readLine();
-System.out.println("Please enter password: ");
-pW = in.readLine();
+			String uName;
+			String pW;
+			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+			System.out.println("Please enter username: ");
+			uName = in.readLine();
+			System.out.println("Please enter password: ");
+			pW = in.readLine();
 
 			// Treiber laden
 
 			try
 				{
-				
+
 					Class.forName(treiber).newInstance();
 				} catch (Exception e)
 				{
@@ -36,16 +36,16 @@ pW = in.readLine();
 			// Erstellung Datenbank-Verbindungsinstanz
 			try
 				{
-					
-					ods.setURL("jdbc:oracle:thin:"+uName+"/"+pW+"@schelling.nt.fh-koeln.de:1521:xe");
+
+					ods.setURL("jdbc:oracle:thin:" + uName + "/" + pW + "@schelling.nt.fh-koeln.de:1521:xe");
 					dbConnection = ods.getConnection();
 				} catch (SQLException e)
 				{
 					System.out.println("Fehler beim Verbindungsaufbau zur Datenbank!");
 					System.out.println(e.getMessage());
 				}
-			pW="";
-			uName="";
+			pW = "";
+			uName = "";
 			return dbConnection;
 		}
 
@@ -99,23 +99,20 @@ pW = in.readLine();
 							System.out.println();
 						}
 
-					
 					/*********************************************************************/
-				      /*                                                                   */
-				      /*                  Eine SQL-UPDATE Anweisung                        */
-				      /*                  (DELETE & INSERT analog)                         */
-				      /*                                                                   */
-				      /*********************************************************************/
-				      /*SQL   = "INSERT INTO ARTIKEL SET ewz = 83.3 WHERE lname = 'Deutschland'";
-				      int a = Stmt.executeUpdate(SQL);
-				      if (a==1){
-				        System.out.println("Update erfolgreich!");
-				      } else {
-				        System.out.println("Update fehlgeschlagen!");
-				      }*/
-					
-					
-					
+					/*                                                                   */
+					/* Eine SQL-UPDATE Anweisung */
+					/* (DELETE & INSERT analog) */
+					/*                                                                   */
+					/*********************************************************************/
+					/*
+					 * SQL =
+					 * "INSERT INTO ARTIKEL SET ewz = 83.3 WHERE lname = 'Deutschland'"
+					 * ; int a = Stmt.executeUpdate(SQL); if (a==1){
+					 * System.out.println("Update erfolgreich!"); } else {
+					 * System.out.println("Update fehlgeschlagen!"); }
+					 */
+
 					// SQL Exception abfangen
 				} catch (SQLException e)
 				{
