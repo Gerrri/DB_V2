@@ -36,7 +36,7 @@ public class ISAM_Verwaltung
 				{
 					System.out.println("Fehler. Die gesuchte Liste wurde nicht angelegt.");
 				}
-//MENUE
+			//MENUE
 			do
 				{
 					System.out.println("Willkommen im Menue:");
@@ -71,8 +71,8 @@ public class ISAM_Verwaltung
 				} while (choice != 0);
 
 		}
-// MENUE END
-	
+	// MENUE END
+
 	// ISAM FILE aus IDX Datei
 	public static void createISAMFile(LinkedList<ISAMArtikel> artikel) throws IOException
 		{
@@ -89,12 +89,11 @@ public class ISAM_Verwaltung
 				}
 		}
 
-	
 	// DATA METHODS
-	
+
 	static void addData(LinkedList artikel) throws IOException
 		{
-
+			System.out.println("\n\n(1)Erfassen eines neuen Datensatzes:\n");
 			RandomAccessFile raf = new RandomAccessFile(pfad, "rw");
 			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 			File file = new File(pfad);
@@ -108,6 +107,7 @@ public class ISAM_Verwaltung
 			int laengeDerDatei;
 			ISAMArtikel new_Artikel;
 
+			//Werte einlesen
 			System.out.println("Bitte geben sie die gewuenschte Artikelnr. ein: ");
 			artnr = Integer.parseInt(in.readLine());
 			Iterator<ISAMArtikel> it = artikel.iterator();
@@ -135,29 +135,30 @@ public class ISAM_Verwaltung
 			csvTemp = (artnr + ";" + artbez + ";" + mge + ";" + preis + ";" + steu + " ");
 
 			laengeDerDatei = (int) raf.length();
-			
+
 			//neuen Artikel in die ISAM Liste aufnehmen
 			new_Artikel = new ISAMArtikel(artnr, laengeDerDatei);
 			artikel.add(new_Artikel);
-			
+
 			//neuen Artikel-CSV in ARTIKEL.DAT schreiben
 			bw.write(csvTemp);
 			bw.newLine();
 			bw.close();
 
+			System.out.println("\n\n");
 		}
 
 	static void showData(LinkedList artikel) throws IOException
 		{
 			Iterator<ISAMArtikel> it = artikel.iterator();
-
+			System.out.println("\n\n(2)Aktueller Inhalt der Datei ARTIKEL.DAT:\n");
 			while (it.hasNext())
 				{
 					ISAMArtikel e = it.next();
 					System.out.println(getData(e.getOffset()));
 
 				}
-
+			System.out.println("\n\n");
 		}
 
 	static String getData(int offset) throws IOException
@@ -172,6 +173,7 @@ public class ISAM_Verwaltung
 
 	static void searchData(LinkedList artikel) throws IOException
 		{
+			System.out.println("\n\n(3)Sortierter Direktzugriff\n");
 			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 			int artnr = 0;
 			try
@@ -181,6 +183,8 @@ public class ISAM_Verwaltung
 				} catch (NumberFormatException e)
 				{
 					System.out.println("Es ist ein Fehler aufgetreten!" + e.getMessage());
+
+					System.out.println("\n\n");
 				}
 
 			ListIterator<ISAMArtikel> it = artikel.listIterator();
@@ -190,16 +194,21 @@ public class ISAM_Verwaltung
 
 					if (artnr == e.getnr())
 						{
-							System.out.println(getData(e.getOffset()));
+							System.out.println("Gesuchter Artikel: "+getData(e.getOffset()));
+
+							System.out.println("\n\n");
 							return;
 						}
 
 				}
 			System.out.println("Artikel nicht vorhanden!");
+
+			System.out.println("\n\n");
 		}
 
 	static void closeProject(LinkedList artikel) throws IOException
 		{
+			System.out.println("\n\n(4)Programm beenden\n");
 
 			ISAMArtikel liste;
 			System.out.println("Save data....");
