@@ -1,12 +1,12 @@
 package dbZ1;
 
-public class ISAMList implements Comparable<ISAMList>
+public class ISAMArtikel implements Comparable<ISAMArtikel>
 {
 
 	private int nr;
 	private int offset;
 
-	public ISAMList(int nr, int offset)
+	public ISAMArtikel(int nr, int offset)
 	{
 		this.nr = nr;
 		this.offset = offset;
@@ -23,7 +23,7 @@ public class ISAMList implements Comparable<ISAMList>
 		}
 
 	@Override
-	public int compareTo(ISAMList o)
+	public int compareTo(ISAMArtikel o)
 		{
 			int onr = o.getnr();
 			if (this.nr > onr)

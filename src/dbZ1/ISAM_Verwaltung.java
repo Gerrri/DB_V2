@@ -25,14 +25,14 @@ public class ISAM_Verwaltung
 	public static void main(String[] args) throws IOException, ClassNotFoundException
 		{
 
-			LinkedList<ISAMList> artikel = new LinkedList<ISAMList>();
+			LinkedList<ISAMArtikel> artikelISAMliste = new LinkedList<ISAMArtikel>();
 			int choice = 0;
 			File file = new File(pfad);
 			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 			RandomAccessFile raf = new RandomAccessFile(pfad, "rw");
-			createISAMFile(artikel);
+			createISAMFile(artikelISAMliste);
 
-			if (artikel == null)
+			if (artikelISAMliste == null)
 				{
 					System.out.println("Fehler. Die gesuchte Liste wurde nicht angelegt.");
 				}
@@ -57,16 +57,16 @@ public class ISAM_Verwaltung
 					switch (choice)
 						{
 						case 1:
-							addData(artikel);
+							addData(artikelISAMliste);
 							break;
 						case 2:
-							showData(artikel);
+							showData(artikelISAMliste);
 							break;
 						case 3:
-							searchData(artikel);
+							searchData(artikelISAMliste);
 							break;
 						case 4:
-							closeProject(artikel);
+							closeProject(artikelISAMliste);
 						}
 				} while (choice != 0);
 
@@ -74,7 +74,7 @@ public class ISAM_Verwaltung
 
 	
 	// ISAM FILE
-	public static void createISAMFile(LinkedList<ISAMList> artikel) throws IOException
+	public static void createISAMFile(LinkedList<ISAMArtikel> artikel) throws IOException
 		{
 
 			FileReader fr_idx = new FileReader(pfad1);
@@ -84,7 +84,7 @@ public class ISAM_Verwaltung
 			while ((line = br.readLine()) != null)
 				{
 					String[] parts = line.split(";");
-					artikel.add(new ISAMList(Integer.parseInt(parts[0]), Integer.parseInt(parts[1])));
+					artikel.add(new ISAMArtikel(Integer.parseInt(parts[0]), Integer.parseInt(parts[1])));
 
 				}
 		}
@@ -104,17 +104,17 @@ public class ISAM_Verwaltung
 			int artnr, steu;
 			String artbez, mge;
 			double preis;
-			String buf;
+			String temp;
 			int laengeDerDatei;
-			ISAMList liste;
+			ISAMArtikel liste;
 
 			System.out.println("Bitte geben sie die gewuenschte Artikelnr. ein: ");
 			artnr = Integer.parseInt(in.readLine());
-			Iterator<ISAMList> it = artikel.iterator();
+			Iterator<ISAMArtikel> it = artikel.iterator();
 
 			while (it.hasNext())
 				{
-					ISAMList e = it.next();
+					ISAMArtikel e = it.next();
 
 					if (e.getnr() == artnr)
 						{
@@ -132,12 +132,12 @@ public class ISAM_Verwaltung
 			System.out.println("Wie hoch ist der Steuersatzt? ");
 			steu = Integer.parseInt(in.readLine());
 
-			buf = (artnr + ";" + artbez + ";" + mge + ";" + preis + ";" + steu + " ");
+			temp = (artnr + ";" + artbez + ";" + mge + ";" + preis + ";" + steu + " ");
 
 			laengeDerDatei = (int) raf.length();
-			liste = new ISAMList(artnr, laengeDerDatei);
+			liste = new ISAMArtikel(artnr, laengeDerDatei);
 			artikel.add(liste);
-			bw.write(buf);
+			bw.write(temp);
 			bw.newLine();
 			bw.close();
 
@@ -145,11 +145,11 @@ public class ISAM_Verwaltung
 
 	static void showData(LinkedList artikel) throws IOException
 		{
-			Iterator<ISAMList> it = artikel.iterator();
+			Iterator<ISAMArtikel> it = artikel.iterator();
 
 			while (it.hasNext())
 				{
-					ISAMList e = it.next();
+					ISAMArtikel e = it.next();
 					System.out.println(getData(e.getOffset()));
 
 				}
@@ -179,10 +179,10 @@ public class ISAM_Verwaltung
 					System.out.println("Es ist ein Fehler aufgetreten!" + e.getMessage());
 				}
 
-			ListIterator<ISAMList> it = artikel.listIterator();
+			ListIterator<ISAMArtikel> it = artikel.listIterator();
 			while (it.hasNext())
 				{
-					ISAMList e = it.next();
+					ISAMArtikel e = it.next();
 
 					if (artnr == e.getnr())
 						{
@@ -197,7 +197,7 @@ public class ISAM_Verwaltung
 	static void closeProject(LinkedList artikel) throws IOException
 		{
 
-			ISAMList liste;
+			ISAMArtikel liste;
 			System.out.println("Save data....");
 			File f = new File(pfad1);
 			PrintWriter pr = new PrintWriter(pfad1);
@@ -214,7 +214,7 @@ public class ISAM_Verwaltung
 			//aktuellen inhalt der Liste noch mal in Datei schreiben
 			for (int i = 0; i < artikel.size(); i++)
 				{
-					liste = (ISAMList) artikel.get(i);
+					liste = (ISAMArtikel) artikel.get(i);
 					pr.println(liste.getnr() + ";" + liste.getOffset());
 
 				}
