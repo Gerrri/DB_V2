@@ -5,43 +5,40 @@ import static java.lang.System.exit;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
-public class ISAM_Verwaltung
+public class ISAMvw
 {
-	static String pfad = "ARTIKEL.DAT";
-	static int offset;
-	static String pfad1 = "ARTIKEL.IDX";
+	static String dataPath = "ARTIKEL.DAT";
+	static long offset;
+	static String idxPath = "ARTIKEL.IDX";
+	static LinkedList<ISAMArtikel> artikelISAMliste = new LinkedList<ISAMArtikel>();
 
-	public static void main(String[] args) throws IOException, ClassNotFoundException
+	public static void main(String[] args) throws IOException
 		{
 
-			LinkedList<ISAMArtikel> artikelISAMliste = new LinkedList<ISAMArtikel>();
-			int choice = 0;
-			File file = new File(pfad);
 			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-			RandomAccessFile raf = new RandomAccessFile(pfad, "rw");
-			createISAMFile(artikelISAMliste);
+			//ISAM Liste aufbauen
 
-			if (artikelISAMliste == null)
-				{
-					System.out.println("Fehler. Die gesuchte Liste wurde nicht angelegt.");
-				}
+			System.out.println("Reading file...\nCreating dataset...\n");
+			createISAM();
+
 			//MENUE
+			int choice = 0;
 			do
 				{
 					System.out.println("Willkommen im Menue:");
 					System.out.println("(1)Erfassen eines neuen Datensatzes");
-					System.out.println("(2)Aktueller Inhalt der Datei: " + file.getName() + " ausgeben");
+					System.out.println("(2)Aktueller Inhalt der Datei: ARTIKEL.DAT ausgeben");
 					System.out.println("(3)Sortierter Direktzugriff");
 					System.out.println("(4)Programm beenden");
 
@@ -57,27 +54,40 @@ public class ISAM_Verwaltung
 					switch (choice)
 						{
 						case 1:
-							addData(artikelISAMliste);
+							addData();
 							break;
 						case 2:
-							showData(artikelISAMliste);
+							showData();
 							break;
 						case 3:
-							searchData(artikelISAMliste);
+							searchData();
 							break;
 						case 4:
-							closeProject(artikelISAMliste);
+							createIDX(artikelISAMliste);
 						}
 				} while (choice != 0);
 
 		}
 	// MENUE END
 
-	// ISAM FILE aus IDX Datei
-	public static void createISAMFile(LinkedList<ISAMArtikel> artikel) throws IOException
+	static void createISAM() throws IOException
 		{
 
-			FileReader fr_idx = new FileReader(pfad1);
+			try
+				{
+					artikelISAMliste = createISAMfromIDX();
+				} catch (FileNotFoundException ex)
+				{
+					artikelISAMliste = createISAMfromDAT();
+
+				}
+		}
+
+	// ISAM FILE aus IDX Datei
+	static LinkedList<ISAMArtikel> createISAMfromIDX() throws IOException
+		{
+			LinkedList<ISAMArtikel> artikel = new LinkedList<ISAMArtikel>();
+			FileReader fr_idx = new FileReader(idxPath);
 			BufferedReader br = new BufferedReader(fr_idx);
 			String line;
 
@@ -87,30 +97,67 @@ public class ISAM_Verwaltung
 					artikel.add(new ISAMArtikel(Integer.parseInt(parts[0]), Integer.parseInt(parts[1])));
 
 				}
+			br.close();
+			return artikel;
+		}
+
+	// ISAM FILE aus DAT Datei
+	static LinkedList<ISAMArtikel> createISAMfromDAT() throws IOException
+		{
+			LinkedList<ISAMArtikel> artikelListe = new LinkedList<ISAMArtikel>();
+			ISAMArtikel newArt;
+
+			RandomAccessFile raf = new RandomAccessFile(dataPath, "r");
+			raf.seek(0);
+
+			String csv;
+			long pos = 0;
+			while ((csv = raf.readLine()) != null)
+				{
+					//temporäres ArtikelObjekt anlegen
+					newArt = new ISAMArtikel((Integer.parseInt(csv.split(";")[0])), pos);
+
+					ListIterator<ISAMArtikel> iti = artikelListe.listIterator(0);
+					if (artikelListe.size() >= 1)
+						{
+							while (iti.hasNext() && (iti.next().getnr() < newArt.getnr()))
+								{
+
+								}
+							//falls neuer nicht der größte,Iterator zurücksetzen für Eintrag
+							//if (!(iti.hasNext()))
+							iti.previous();
+						}
+					//offset des nächsten Eintrags vorspeichern
+					pos = raf.getFilePointer();
+					// neuen Eintrag in ISAM Liste aufnehmen
+					iti.add(newArt);
+				}
+
+			raf.close();
+			return artikelListe;
 		}
 
 	// DATA METHODS
 
-	static void addData(LinkedList artikel) throws IOException
+	static void addData() throws IOException
 		{
 			System.out.println("\n\n(1)Erfassen eines neuen Datensatzes:\n");
-			RandomAccessFile raf = new RandomAccessFile(pfad, "rw");
+			RandomAccessFile raf = new RandomAccessFile(dataPath, "rw");
 			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-			File file = new File(pfad);
+			File file = new File(dataPath);
 			FileWriter write = new FileWriter(file, true);
-			FileWriter write_idx = new FileWriter(pfad1, true);
+
 			BufferedWriter bw = new BufferedWriter(write);
 			int artnr, steu;
 			String artbez, mge;
 			double preis;
 			String csvTemp;
-			int laengeDerDatei;
-			ISAMArtikel new_Artikel;
-
+			long offset;
 			//Werte einlesen
 			System.out.println("Bitte geben sie die gewuenschte Artikelnr. ein: ");
 			artnr = Integer.parseInt(in.readLine());
-			Iterator<ISAMArtikel> it = artikel.iterator();
+			Iterator<ISAMArtikel> it = artikelISAMliste.iterator();
 
 			while (it.hasNext())
 				{
@@ -119,6 +166,8 @@ public class ISAM_Verwaltung
 					if (e.getnr() == artnr)
 						{
 							System.out.println("Es ist ein Fehler aufgetreten. Artikel ist bereits vorhanden");
+							bw.close();
+							raf.close();
 							return;
 						}
 				}
@@ -134,23 +183,39 @@ public class ISAM_Verwaltung
 
 			csvTemp = (artnr + ";" + artbez + ";" + mge + ";" + preis + ";" + steu + " ");
 
-			laengeDerDatei = (int) raf.length();
-
-			//neuen Artikel in die ISAM Liste aufnehmen
-			new_Artikel = new ISAMArtikel(artnr, laengeDerDatei);
-			artikel.add(new_Artikel);
-
 			//neuen Artikel-CSV in ARTIKEL.DAT schreiben
+			offset = raf.length();
 			bw.write(csvTemp);
 			bw.newLine();
 			bw.close();
 
+			raf.close();
+			ISAMArtikel newArt = new ISAMArtikel((Integer.parseInt(csvTemp.split(";")[0])), offset);
+
+			//neuen Artikel in die ISAM Liste aufnehmen
+			//temporäres ArtikelObjekt anlegen
+
+			ListIterator<ISAMArtikel> iti = artikelISAMliste.listIterator(0);
+			if (artikelISAMliste.size() >= 1)
+				{
+					while (iti.next().getnr() < newArt.getnr())
+						{
+
+						}
+					//falls neuer nicht der größte,Iterator zurücksetzen für Eintrag
+					//if (!(iti.hasNext()))
+					iti.previous();
+				}
+
+			// neuen Eintrag in ISAM Liste aufnehmen
+			iti.add(newArt);
+
 			System.out.println("\n\n");
 		}
 
-	static void showData(LinkedList artikel) throws IOException
+	static void showData() throws IOException
 		{
-			Iterator<ISAMArtikel> it = artikel.iterator();
+			Iterator<ISAMArtikel> it = artikelISAMliste.iterator();
 			System.out.println("\n\n(2)Aktueller Inhalt der Datei ARTIKEL.DAT:\n");
 			while (it.hasNext())
 				{
@@ -161,9 +226,9 @@ public class ISAM_Verwaltung
 			System.out.println("\n\n");
 		}
 
-	static String getData(int offset) throws IOException
+	static String getData(long offset) throws IOException
 		{
-			RandomAccessFile raf = new RandomAccessFile(pfad, "r");
+			RandomAccessFile raf = new RandomAccessFile(dataPath, "r");
 			String line;
 			raf.seek(offset);
 			line = raf.readLine();
@@ -171,7 +236,7 @@ public class ISAM_Verwaltung
 			return line;
 		}
 
-	static void searchData(LinkedList artikel) throws IOException
+	static void searchData() throws IOException
 		{
 			System.out.println("\n\n(3)Sortierter Direktzugriff\n");
 			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
@@ -187,14 +252,14 @@ public class ISAM_Verwaltung
 					System.out.println("\n\n");
 				}
 
-			ListIterator<ISAMArtikel> it = artikel.listIterator();
+			ListIterator<ISAMArtikel> it = artikelISAMliste.listIterator();
 			while (it.hasNext())
 				{
 					ISAMArtikel e = it.next();
 
 					if (artnr == e.getnr())
 						{
-							System.out.println("Gesuchter Artikel: "+getData(e.getOffset()));
+							System.out.println("Gesuchter Artikel: " + getData(e.getOffset()));
 
 							System.out.println("\n\n");
 							return;
@@ -206,15 +271,14 @@ public class ISAM_Verwaltung
 			System.out.println("\n\n");
 		}
 
-	static void closeProject(LinkedList artikel) throws IOException
+	// IDX Datei erstellen
+	static void createIDX(LinkedList<ISAMArtikel> artikel) throws FileNotFoundException, IOException
 		{
-			System.out.println("\n\n(4)Programm beenden\n");
-
-			ISAMArtikel liste;
+			ISAMArtikel tempArt;
 			System.out.println("Save data....");
-			File f = new File(pfad1);
-			PrintWriter pr = new PrintWriter(pfad1);
-			BufferedWriter bw = new BufferedWriter(pr);
+			File f = new File(idxPath);
+			PrintWriter pr = new PrintWriter(idxPath);
+			//	BufferedWriter bw = new BufferedWriter(pr);
 			//Vorhandenene Datei loeschen 
 			if (f.exists())
 				{
@@ -222,13 +286,12 @@ public class ISAM_Verwaltung
 				}
 			//Datei neu erstellen
 			f.createNewFile();
-			//Datei sortieren
-			Collections.sort(artikel);
+
 			//aktuellen inhalt der Liste noch mal in Datei schreiben
 			for (int i = 0; i < artikel.size(); i++)
 				{
-					liste = (ISAMArtikel) artikel.get(i);
-					pr.println(liste.getnr() + ";" + liste.getOffset());
+					tempArt = (ISAMArtikel) artikel.get(i);
+					pr.println(tempArt.getnr() + ";" + tempArt.getOffset());
 
 				}
 

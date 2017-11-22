@@ -4,9 +4,9 @@ public class ISAMArtikel implements Comparable<ISAMArtikel>
 {
 
 	private int nr;
-	private int offset;
+	private long offset;
 
-	public ISAMArtikel(int nr, int offset)
+	public ISAMArtikel(int nr, long offset)
 	{
 		this.nr = nr;
 		this.offset = offset;
@@ -17,7 +17,7 @@ public class ISAMArtikel implements Comparable<ISAMArtikel>
 			return nr;
 		}
 
-	public int getOffset()
+	public long getOffset()
 		{
 			return offset;
 		}
