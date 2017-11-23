@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -27,6 +28,8 @@ public class ISAMvw
 		{
 
 			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+			
+			
 			//ISAM Liste aufbauen
 
 			System.out.println("Reading file...\nCreating dataset...\n");
@@ -70,6 +73,9 @@ public class ISAMvw
 		}
 	// MENUE END
 
+	
+	
+	// ISAM METHODS
 	static void createISAM() throws IOException
 		{
 
@@ -112,12 +118,13 @@ public class ISAMvw
 
 			String csv;
 			long pos = 0;
+	
 			while ((csv = raf.readLine()) != null)
 				{
 					//temporäres ArtikelObjekt anlegen
 					newArt = new ISAMArtikel((Integer.parseInt(csv.split(";")[0])), pos);
 
-					ListIterator<ISAMArtikel> iti = artikelListe.listIterator(0);
+					/*ListIterator<ISAMArtikel> iti = artikelListe.listIterator(0);
 					if (artikelListe.size() >= 1)
 						{
 							while (iti.hasNext() && (iti.next().getnr() < newArt.getnr()))
@@ -125,14 +132,20 @@ public class ISAMvw
 
 								}
 							//falls neuer nicht der größte,Iterator zurücksetzen für Eintrag
-							//if (!(iti.hasNext()))
-							iti.previous();
+							
+							
 						}
+					if(iti.hasPrevious())
+						iti.previous();
 					//offset des nächsten Eintrags vorspeichern
 					pos = raf.getFilePointer();
 					// neuen Eintrag in ISAM Liste aufnehmen
 					iti.add(newArt);
+				*/
+					pos = raf.getFilePointer();
+					artikelListe.add(newArt);
 				}
+			Collections.sort(artikelListe);
 
 			raf.close();
 			return artikelListe;
@@ -190,25 +203,14 @@ public class ISAMvw
 			bw.close();
 
 			raf.close();
-			ISAMArtikel newArt = new ISAMArtikel((Integer.parseInt(csvTemp.split(";")[0])), offset);
-
-			//neuen Artikel in die ISAM Liste aufnehmen
+			
+			
 			//temporäres ArtikelObjekt anlegen
 
-			ListIterator<ISAMArtikel> iti = artikelISAMliste.listIterator(0);
-			if (artikelISAMliste.size() >= 1)
-				{
-					while (iti.next().getnr() < newArt.getnr())
-						{
-
-						}
-					//falls neuer nicht der größte,Iterator zurücksetzen für Eintrag
-					//if (!(iti.hasNext()))
-					iti.previous();
-				}
-
-			// neuen Eintrag in ISAM Liste aufnehmen
-			iti.add(newArt);
+			ISAMArtikel newArt = new ISAMArtikel((Integer.parseInt(csvTemp.split(";")[0])), offset);
+			//neuen Artikel in die ISAM Liste aufnehmen
+			artikelISAMliste.add(newArt);
+			Collections.sort(artikelISAMliste);
 
 			System.out.println("\n\n");
 		}

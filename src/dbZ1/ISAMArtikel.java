@@ -23,10 +23,10 @@ public class ISAMArtikel implements Comparable<ISAMArtikel>
 		}
 
 	@Override
-	public int compareTo(ISAMArtikel o)
+	public int compareTo(ISAMArtikel in)
 		{
-			int onr = o.getnr();
-			if (this.nr > onr)
+			int onr = in.getnr();
+			if (onr < this.nr)
 				{
 					return 1;
 				} else if (this.nr == onr)
