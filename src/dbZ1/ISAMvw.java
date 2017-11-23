@@ -28,8 +28,7 @@ public class ISAMvw
 		{
 
 			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-			
-			
+
 			//ISAM Liste aufbauen
 
 			System.out.println("Reading file...\nCreating dataset...\n");
@@ -73,8 +72,6 @@ public class ISAMvw
 		}
 	// MENUE END
 
-	
-	
 	// ISAM METHODS
 	static void createISAM() throws IOException
 		{
@@ -118,33 +115,19 @@ public class ISAMvw
 
 			String csv;
 			long pos = 0;
-	
+
 			while ((csv = raf.readLine()) != null)
 				{
 					//temporäres ArtikelObjekt anlegen
 					newArt = new ISAMArtikel((Integer.parseInt(csv.split(";")[0])), pos);
-
-					/*ListIterator<ISAMArtikel> iti = artikelListe.listIterator(0);
-					if (artikelListe.size() >= 1)
-						{
-							while (iti.hasNext() && (iti.next().getnr() < newArt.getnr()))
-								{
-
-								}
-							//falls neuer nicht der größte,Iterator zurücksetzen für Eintrag
-							
-							
-						}
-					if(iti.hasPrevious())
-						iti.previous();
-					//offset des nächsten Eintrags vorspeichern
+					// neues offset bestimmen
 					pos = raf.getFilePointer();
-					// neuen Eintrag in ISAM Liste aufnehmen
-					iti.add(newArt);
-				*/
-					pos = raf.getFilePointer();
+					
+					//Artikel in Liste aufnehmen
 					artikelListe.add(newArt);
 				}
+			
+			// Liste neu sortieren
 			Collections.sort(artikelListe);
 
 			raf.close();
@@ -203,8 +186,7 @@ public class ISAMvw
 			bw.close();
 
 			raf.close();
-			
-			
+
 			//temporäres ArtikelObjekt anlegen
 
 			ISAMArtikel newArt = new ISAMArtikel((Integer.parseInt(csvTemp.split(";")[0])), offset);
