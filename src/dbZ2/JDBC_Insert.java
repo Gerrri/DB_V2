@@ -52,6 +52,8 @@ public class JDBC_Insert
 	public static void main(String[] args) throws IOException
 		{
 
+			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+
 			// Datenbankverbindung erstellen mit Hilfe der "connect()"-Methode
 			try
 				{
@@ -70,6 +72,10 @@ public class JDBC_Insert
 
 					// Erzeugen eines Statements aus der DB-Verbindung
 					Stmt = con.createStatement();
+
+					
+
+					// MENUE END
 
 					/*********************************************************************/
 					/*                                                                   */
@@ -99,6 +105,16 @@ public class JDBC_Insert
 							System.out.println();
 						}
 
+					SQL = "INSERT INTO ARTIKEL VALUES\r\n" + "  (null, 'Grube',1,'5,99','0,19',null)";
+
+					int a = Stmt.executeUpdate(SQL);
+					if (a == 1)
+						{
+							System.out.println("Update erfolgreich!");
+						} else
+						{
+							System.out.println("Update fehlgeschlagen!");
+						}
 					/*********************************************************************/
 					/*                                                                   */
 					/* Eine SQL-UPDATE Anweisung */
@@ -119,6 +135,7 @@ public class JDBC_Insert
 					System.out.println(e.getMessage());
 					System.out.println("SQL Exception wurde geworfen!");
 				}
+
 		}
 
 }
