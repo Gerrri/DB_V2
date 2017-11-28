@@ -34,20 +34,22 @@ public class JDBC_Verwaltung
 	public static void metaHandling(ResultSet RS) throws SQLException
 		{
 			ResultSetMetaData rsmd = RS.getMetaData();
+			System.out.println("\n\n");
+			String names = "\t";
+			String data = "";
 
-			String names = "  ";
-			String data = "   ";
 			for (int i = 1; i <= rsmd.getColumnCount(); i++)
 				{
-					names += rsmd.getColumnName(i) + "          ";
+
+					names += rsmd.getColumnName(i) + "\t\t\t";
 				}
 			System.out.println(names);
 			while (RS.next())
 				{
-					data = "   ";
+					data = "\t";
 					for (int i = 1; i <= rsmd.getColumnCount(); i++)
 						{
-							data += RS.getString(i) + "          ";
+							data += RS.getString(i) + "\t\t\t";
 						}
 
 					System.out.println(data);
@@ -111,7 +113,6 @@ public class JDBC_Verwaltung
 					Statement Stmt = con.createStatement();
 					ResultSet RS;
 					String SQL;
-				
 
 					//MENUE
 					int choice = 0;
@@ -156,6 +157,7 @@ public class JDBC_Verwaltung
 											System.out.println("(1)ARTIKEL");
 											System.out.println("(2)LAGER");
 											System.out.println("(3)KUNDEN");
+											System.out.println("(0)QUIT");
 
 											try
 												{
@@ -171,34 +173,42 @@ public class JDBC_Verwaltung
 
 												{
 												case 1:
+													System.out.println("\n\n");
 													RS = executeSQL(sALL, "ARTIKEL");
 													metaHandling(RS);
+													System.out.println("\n\n");
 													break;
 
 												case 2:
+													System.out.println("\n\n");
 													RS = executeSQL(sALL, "LAGER");
 													metaHandling(RS);
+													System.out.println("\n\n");
 													break;
 
 												case 3:
+													System.out.println("\n\n");
 													RS = executeSQL(sALL, "KUNDE");
 													metaHandling(RS);
+													System.out.println("\n\n");
 													break;
 												}//SWITCH END
 
 										} while (choice != 0);
 									// SUB MENÜ END
-
+									choice=1;
 									break;
 
-									
-									//ARTIKEL SUCHE NACH ARTNR
+								//ARTIKEL SUCHE NACH ARTNR
 								case 3:
-									
+									System.out.println("\n\n");
 									System.out.println("Bitte Artikel Nr eingeben: ");
 									String artNr = in.readLine();
-									RS= executeSQL("","");
+									RS = executeSQL("SELECT * FROM ARTIKEL,LAGERBESTAND ",
+											("WHERE ARTIKEL.ARTNR=" + artNr + " AND LAGERBESTAND.ARTNR=" + artNr));
 									metaHandling(RS);
+									System.out.println("\n\n");
+
 									break;
 
 								case 4:
