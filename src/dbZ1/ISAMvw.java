@@ -120,7 +120,8 @@ public class ISAMvw
 				{
 					//temporäres ArtikelObjekt anlegen
 					newArt = new ISAMArtikel((Integer.parseInt(csv.split(";")[0])), pos);
-					// neues offset bestimmen
+					
+					// offset des nächsten CSVs buffern
 					pos = raf.getFilePointer();
 					
 					//Artikel in Liste aufnehmen

@@ -6,7 +6,7 @@ import oracle.jdbc.pool.*;
 
 public class JDBC_Insert
 {
-
+/*
 	public static Connection connect() throws SQLException, IOException
 		{
 			String treiber;
@@ -17,7 +17,7 @@ public class JDBC_Insert
 			String uName;
 			String pW;
 			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-			System.out.println("Please enter username: ");
+			/*System.out.println("Please enter username: ");
 			uName = in.readLine();
 			System.out.println("Please enter password: ");
 			pW = in.readLine();
@@ -37,7 +37,7 @@ public class JDBC_Insert
 			try
 				{
 
-					ods.setURL("jdbc:oracle:thin:" + uName + "/" + pW + "@schelling.nt.fh-koeln.de:1521:xe");
+					ods.setURL("jdbc:oracle:thin:dbprak39/salamistulle@schelling.nt.fh-koeln.de:1521:xe");
 					dbConnection = ods.getConnection();
 				} catch (SQLException e)
 				{
@@ -48,7 +48,7 @@ public class JDBC_Insert
 			uName = "";
 			return dbConnection;
 		}
-
+*/
 	public static void main(String[] args) throws IOException
 		{
 
@@ -57,7 +57,7 @@ public class JDBC_Insert
 			// Datenbankverbindung erstellen mit Hilfe der "connect()"-Methode
 			try
 				{
-					Connection con = connect();
+					Connect con = new Connect();
 
 					// JDBC Objekte
 					Statement Stmt;
@@ -71,50 +71,53 @@ public class JDBC_Insert
 					double steu;
 
 					// Erzeugen eines Statements aus der DB-Verbindung
-					Stmt = con.createStatement();
+					Stmt = con.getDbConnection().createStatement();
+
+				
+
+						
+									/*********************************************************************/
+									/*                                                                   */
+									/* Eine SQL-SELECT Anfrage */
+									/*                                                                   */
+									/*********************************************************************/
+									// Eine SQL Select Anweisung
+									SQL = "SELECT * FROM ARTIKEL";
+
+									// SQL-Anweisung ausführen und Ergebnis in ein ResultSet schreiben
+									RS = Stmt.executeQuery(SQL);
+
+									// Das ResultSet Datensatzweise durchlaufen
+									while (RS.next())
+										{
+											artnr = RS.getInt("ARTNR");
+											artbez = RS.getString("ARTBEZ");
+											mge = RS.getInt("MGE");
+											preis = RS.getDouble("PREIS");
+											steu = RS.getDouble("STEU");
+
+											System.out.println("ARTNr. : " + artnr);
+											System.out.println("ARTBEZ: " + artbez);
+											System.out.println("MGE: " + mge);
+											System.out.println("Preis: " + preis);
+											System.out.println("Steuer: " + steu);
+											System.out.println();
+										}
+							
+									
+							
+									SQL = ("INSERT INTO ARTIKEL VALUES (null, 'Datteln',1,'5,99','0,19', TO_DATE ('01-01-2017','DD-MM-YYYY'))");
+
+									int a = Stmt.executeUpdate(SQL);
+									if (a == 1)
+										{
+											System.out.println("Update erfolgreich!");
+										} else
+										{
+											System.out.println("Update fehlgeschlagen!");
+										}
 
 					
-
-					// MENUE END
-
-					/*********************************************************************/
-					/*                                                                   */
-					/* Eine SQL-SELECT Anfrage */
-					/*                                                                   */
-					/*********************************************************************/
-					// Eine SQL Select Anweisung
-					SQL = "SELECT * FROM ARTIKEL";
-
-					// SQL-Anweisung ausführen und Ergebnis in ein ResultSet schreiben
-					RS = Stmt.executeQuery(SQL);
-
-					// Das ResultSet Datensatzweise durchlaufen
-					while (RS.next())
-						{
-							artnr = RS.getInt("ARTNR");
-							artbez = RS.getString("ARTBEZ");
-							mge = RS.getInt("MGE");
-							preis = RS.getDouble("PREIS");
-							steu = RS.getDouble("STEU");
-
-							System.out.println("ARTNr. : " + artnr);
-							System.out.println("ARTBEZ: " + artbez);
-							System.out.println("MGE: " + mge);
-							System.out.println("Preis: " + preis);
-							System.out.println("Steuer: " + steu);
-							System.out.println();
-						}
-
-					SQL = "INSERT INTO ARTIKEL VALUES\r\n" + "  (null, 'Grube',1,'5,99','0,19',null)";
-
-					int a = Stmt.executeUpdate(SQL);
-					if (a == 1)
-						{
-							System.out.println("Update erfolgreich!");
-						} else
-						{
-							System.out.println("Update fehlgeschlagen!");
-						}
 					/*********************************************************************/
 					/*                                                                   */
 					/* Eine SQL-UPDATE Anweisung */
@@ -128,6 +131,9 @@ public class JDBC_Insert
 					 * System.out.println("Update erfolgreich!"); } else {
 					 * System.out.println("Update fehlgeschlagen!"); }
 					 */
+					
+					
+					
 
 					// SQL Exception abfangen
 				} catch (SQLException e)
