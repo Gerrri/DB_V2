@@ -14,57 +14,56 @@ public class Connect
 	OracleDataSource ods = new OracleDataSource();
 
 	public Connect() throws SQLException, IOException
-		{
-			String treiber;
-			
+	{
+		String treiber;
 
-			treiber = "oracle.jdbc.driver.OracleDriver";
-			
-			String uName;
-			String pW;
-			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-			/*System.out.println("Please enter username: ");
-			uName = in.readLine();
-			System.out.println("Please enter password: ");
-			pW = in.readLine();
-*/
-			// Treiber laden
+		treiber = "oracle.jdbc.driver.OracleDriver";
 
-			try
-				{
+		String uName;
+		String pW;
+		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+		System.out.println("Please enter username: ");
+		uName = in.readLine();
+		System.out.println("Please enter password: ");
+		pW = in.readLine();
 
-					Class.forName(treiber).newInstance();
-				} catch (Exception e)
-				{
-					System.out.println("Fehler beim laden des Treibers: " + e.getMessage());
-				}
+		// Treiber laden
 
-			// Erstellung Datenbank-Verbindungsinstanz
-			try
-				{
+		try
+			{
 
-					ods.setURL("jdbc:oracle:thin:dbprak39/salamistulle@schelling.nt.fh-koeln.de:1521:xe");
-					dbConnection = ods.getConnection();
-				} catch (SQLException e)
-				{
-					System.out.println("Fehler beim Verbindungsaufbau zur Datenbank!");
-					System.out.println(e.getMessage());
-				}
-			pW = "";
-			uName = "";
-		
-		}
-	
+				Class.forName(treiber).newInstance();
+			} catch (Exception e)
+			{
+				System.out.println("Fehler beim laden des Treibers: " + e.getMessage());
+			}
+
+		// Erstellung Datenbank-Verbindungsinstanz
+		try
+			{
+
+				ods.setURL("jdbc:oracle:thin:" + uName + "/" + pW + "@schelling.nt.fh-koeln.de:1521:xe");
+				dbConnection = ods.getConnection();
+			} catch (SQLException e)
+			{
+				System.out.println("Fehler beim Verbindungsaufbau zur Datenbank!");
+				System.out.println(e.getMessage());
+			}
+		pW = "";
+		uName = "";
+
+	}
+
 	public Connection getDbConnection()
 		{
 			return dbConnection;
 		}
+
 	public void setDbConnection(Connection dbConnection)
 		{
 			this.dbConnection = dbConnection;
 		}
-	
-	
+
 	public OracleDataSource getOds()
 		{
 			return ods;
