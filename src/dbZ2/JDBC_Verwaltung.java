@@ -35,7 +35,7 @@ public class JDBC_Verwaltung
 		{
 			ResultSetMetaData rsmd = RS.getMetaData();
 			System.out.println("\n\n");
-			String names = "\t";
+			String names = "";
 			String data = "";
 
 			for (int i = 1; i <= rsmd.getColumnCount(); i++)
@@ -46,7 +46,7 @@ public class JDBC_Verwaltung
 			System.out.println(names);
 			while (RS.next())
 				{
-					data = "\t";
+					data = "";
 					for (int i = 1; i <= rsmd.getColumnCount(); i++)
 						{
 							data += RS.getString(i) + "\t\t\t";
@@ -67,10 +67,10 @@ public class JDBC_Verwaltung
 			String uName;
 			String pW;
 			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-			System.out.println("Please enter username: ");
-			uName = in.readLine();
-			System.out.println("Please enter password: ");
-			pW = in.readLine();
+			//System.out.println("Please enter username: ");
+			//uName = in.readLine();
+		//	System.out.println("Please enter password: ");
+		//	pW = in.readLine();
 
 			// Treiber laden
 
@@ -86,8 +86,8 @@ public class JDBC_Verwaltung
 			// Erstellung Datenbank-Verbindungsinstanz
 			try
 				{
-
-					ods.setURL("jdbc:oracle:thin:" + uName + "/" + pW + "@schelling.nt.fh-koeln.de:1521:xe");
+					ods.setURL("jdbc:oracle:thin:dbprak39/salamistulle@schelling.nt.fh-koeln.de:1521:xe");
+					//ods.setURL("jdbc:oracle:thin:" + uName + "/" + pW + "@schelling.nt.fh-koeln.de:1521:xe");
 					dbConnection = ods.getConnection();
 				} catch (SQLException e)
 				{
@@ -136,7 +136,7 @@ public class JDBC_Verwaltung
 							switch (choice)
 								{
 								case 1:
-									SQL = ("INSERT INTO ARTIKEL VALUES (null, 'Datteln',1,'5,99','0,19', TO_DATE ('01-01-2017','DD-MM-YYYY'))");
+									SQL = ("INSERT INTO ARTIKEL VALUES (null, 'Pflaumen',1,'5,99','0,19', TO_DATE ('01-02-2017','DD-MM-YYYY'))");
 
 									int a = Stmt.executeUpdate(SQL);
 									if (a == 1)
@@ -204,10 +204,11 @@ public class JDBC_Verwaltung
 									System.out.println("\n\n");
 									System.out.println("Bitte Artikel Nr eingeben: ");
 									String artNr = in.readLine();
-									RS = executeSQL("SELECT * FROM ARTIKEL,LAGERBESTAND ",
-											("WHERE ARTIKEL.ARTNR=" + artNr + " AND LAGERBESTAND.ARTNR=" + artNr));
+									RS = executeSQL("SELECT ARTIKEL.ARTNR, ARTIKEL.ARTBEZ, ARTIKEL.MGE, ARTIKEL.PREIS, ARTIKEL.STEU, TO_CHAR(ARTIKEL.EDAT,'DD-MM-YYYY') EDAT , LAGERBESTAND.BSTNR, LAGERBESTAND.LNR, LAGERBESTAND.MENGE, LAGER.LORT, LAGER.LPLZ FROM ARTIKEL,LAGERBESTAND,LAGER ",("WHERE ARTIKEL.ARTNR=" + artNr + " AND LAGERBESTAND.ARTNR=" + artNr + " AND LAGER.LNR= LAGERBESTAND.LNR"));
 									metaHandling(RS);
-									System.out.println("\n\n");
+								
+									RS = executeSQL("SELECT SUM (LAGERBESTAND.MENGE) Gesamtbestand  FROM LAGERBESTAND"," WHERE LAGERBESTAND.ARTNR = "+artNr);
+									metaHandling(RS);
 
 									break;
 
