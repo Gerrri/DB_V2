@@ -22,19 +22,19 @@ public class JDBC_Verwaltung
 					// Verbindung wird aufgebaut
 					con.connect();
 
-				
-
 					//MENUE
 					int choice = 0;
 					do
 						{
 							System.out.println("Willkommen im Menue:");
-							
+
 							System.out.println("(1)Datensätze abrufen");
 							System.out.println("(2)Artikel Auskunft, nach ArtikelNr");
 							System.out.println("(3)Neuer Lagerbestand für Artikel");
 							System.out.println("(4)Menge eines Lagerbestandes aktualisieren");
-							System.out.println("(5)Neue Datensätze importieren mit JDBC INSERT");
+							System.out.println("(5)Neue Kundenbestellung anlegen");
+							System.out.println("(6)Neue Datensätze importieren mit JDBC INSERT");
+
 							System.out.println("(0)Programm beenden");
 
 							try
@@ -49,7 +49,7 @@ public class JDBC_Verwaltung
 							switch (choice)
 								{
 								case 1:
-																
+
 									//SUB MENÜ
 
 									do
@@ -118,17 +118,16 @@ public class JDBC_Verwaltung
 									// User Abfragen
 									System.out.println(
 											"Für welchen Artikel möchten sie einen Bestand hinzufügen?\nBitte Artikel Nr. eingeben: ");
-									String artNrTemp = in.readLine();
+									String csvLAGERBEST = in.readLine();
 									System.out.println(
 											"In welchem Lager möchten sie den Bestand hinzufügen?\nBitte Lager Nr. eingeben: ");
-									String laNr = in.readLine();
+									csvLAGERBEST += ";" + in.readLine();
 									System.out.println(
 											"Wie lautet der neue Bestand?\nBitte Bestand in ganzen zahlen eingeben: ");
-									String menge = in.readLine();
+									csvLAGERBEST += ";" + in.readLine();
 
-									String csv = (artNrTemp + ";" + laNr + ";" + menge);
 									//SQL GESCHWURBEL
-									if (con.sqlHandler(3, csv)==1)
+									if (con.sqlHandler(3, csvLAGERBEST) == 1)
 										{
 											System.out.println("Erfolgreich angelegt!");
 										}
@@ -142,26 +141,38 @@ public class JDBC_Verwaltung
 									// User Abfragen
 									System.out.println(
 											"Für welchen Artikel möchten sie den Bestand aktualisieren?\nBitte Artikel Nr. eingeben: ");
-									String artNrTemp2 = in.readLine();
+									String csvUPDATE = in.readLine();
 									System.out.println(
 											"In welchem Lager möchten sie den Bestand aktualisieren?\nBitte Lager Nr. eingeben: ");
-									String laNr2 = in.readLine();
+									csvUPDATE += ";" + in.readLine();
 									System.out.println(
 											"Wie lautet der neue Bestand?\nBitte Bestand in ganzen zahlen eingeben: ");
-									String menge2 = in.readLine();
-									String csv2 = (artNrTemp2 + ";" + laNr2 + ";" + menge2);
+									csvUPDATE += ";" + in.readLine();
+
 									//SQL geschwurbel
 									System.out.println("\n\n");
-																		
-									updates = con.sqlHandler(4, csv2);
+
+									updates = con.sqlHandler(4, csvUPDATE);
 									System.out.println("Geänderte Bestände: " + updates);
 
 									System.out.println("\n\n");
 									break;
+
+								case 5: //Kundenbestellung
+
+									System.out.println("Bitte geben sie die Kundennummer ein: ");
+									String csvKB = in.readLine();
+									System.out.println("Bitte geben sie die Artikel Nummer ein: ");
+									csvKB += ";" + in.readLine();
+									System.out.println("Bitte geben sie die Bestellmenge ein: ");
+									csvKB += ";" + in.readLine();
+
+									con.jdbcBestellung(csvKB);
+
+									break;
 									
-									
-								case 5: //JDBC INSERT
-								
+								case 6: //JDBC INSERT
+
 									System.out.println("Datensätze werden aus ARTIKEL.CSV importiert...\n\n");
 									int a = con.jdbcInsert();
 									if (a >= 1)
@@ -174,6 +185,7 @@ public class JDBC_Verwaltung
 
 									System.out.println("\n\n");
 									break;
+
 								}
 						} while (choice != 0);
 					System.out.println("...shutting down..\n\nBYE BYE!!!");

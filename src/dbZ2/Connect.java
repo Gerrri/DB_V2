@@ -111,62 +111,87 @@ public class Connect
 			// Erzeugen eines Statements aus der DB-Verbindung
 			Stmt = con.createStatement();
 			// SQL-Anweisung ausführen und Ergebnis in ein ResultSet schreiben
-			tempRS = Stmt.executeUpdate(sql);
-			System.out.println(tempRS);
-			return tempRS;
+			try
+				{
+					tempRS = Stmt.executeUpdate(sql);
+					return tempRS;
+				} catch (SQLException e)
+				{
+					System.out.println(e.getMessage() + "\nFalsche Werte eingegeben!");
+					return 0;
+				}
+
 		}
 
 	public ResultSet executeSQLquery(String sql, String tab) throws SQLException
 		{
 			Statement Stmt;
 
-			ResultSet tempRS;
+			ResultSet tempRS = null;
 
 			// Erzeugen eines Statements aus der DB-Verbindung
 			Stmt = con.createStatement();
+			try
+				{
+					// SQL-Anweisung ausführen und Ergebnis in ein ResultSet schreiben
+					tempRS = Stmt.executeQuery(sql + tab);
+					return tempRS;
+				} catch (SQLException se)
+				{
+					System.out.println(se.getMessage() + "\nÜberprüfen sie ihre Eingaben!");
+					return tempRS;
+				}
 
-			// SQL-Anweisung ausführen und Ergebnis in ein ResultSet schreiben
-			tempRS = Stmt.executeQuery(sql + tab);
-			return tempRS;
 		}
 
-	public void rsMetaAusgabe(ResultSet RS) throws SQLException
+	public void rsMetaAusgabe(ResultSet RS) throws SQLException, NullPointerException
 		{
-			ResultSetMetaData rsmd = RS.getMetaData();
-			System.out.println("\n\n");
-			String columnNames = "";
-			String data = "";
-
-			for (int i = 1; i <= rsmd.getColumnCount(); i++)
+			try
 				{
-					columnNames += rsmd.getColumnName(i) + "\t\t\t";
-				}
-			System.out.println(columnNames);
-			while (RS.next())
-				{
-					data = "";
+					ResultSetMetaData rsmd = RS.getMetaData();
+					System.out.println("\n\n");
+					String columnNames = "";
+					String data = "";
+					int a = 0;
 					for (int i = 1; i <= rsmd.getColumnCount(); i++)
 						{
-							if (RS.getString(i).length() >= 8)
+							columnNames += rsmd.getColumnName(i) + "\t\t\t";
+						}
+
+					while (RS.next())
+						{
+							data = "";
+							for (int i = 1; i <= rsmd.getColumnCount(); i++)
 								{
-									if (RS.getString(i).length() >= 16)
+									if (RS.getString(i).length() >= 8)
 										{
-											data += RS.getString(i) + "\t";
+											if (RS.getString(i).length() >= 16)
+												{
+													data += RS.getString(i) + "\t";
+												} else
+												{
+													data += RS.getString(i) + "\t\t";
+												}
 										} else
 										{
-											data += RS.getString(i) + "\t\t";
+											data += RS.getString(i) + "\t\t\t";
 										}
-								} else
-								{
-									data += RS.getString(i) + "\t\t\t";
 								}
+							if (a == 0)
+								{
+									System.out.println(columnNames);
+									a++;
+								}
+							System.out.println(data);
 						}
-					System.out.println(data);
+					RS.close();
+				} catch (NullPointerException e)
+				{
+					System.out.println("Artikel nicht vorhanden oder nicht im Bestand!");
 				}
-			RS.close();
 		}
 
-	public int sqlHandler(int c, String csv) throws SQLException
+	public int sqlHandler(int c, String csv) throws SQLException, NumberFormatException
 		{
 			switch (c)
 				{
@@ -198,48 +223,131 @@ public class Connect
 
 							int t = Integer.parseInt(csv);
 							csv = String.valueOf(t);
-						} catch (Exception e)
+
+						} catch (NumberFormatException n)
 						{
 
-							System.out.println("Keine gültige Artikel Nummer\n" + e.getMessage());
-							return -1;
+							System.out.println("Keine gültige Artikel Nummer\n" + n.getMessage());
+							return 0;
 
 						}
+					try
+						{
+							rsMetaAusgabe(executeSQLquery(
+									"SELECT ARTIKEL.ARTNR, ARTIKEL.ARTBEZ, ARTIKEL.MGE, ARTIKEL.PREIS, ARTIKEL.STEU, TO_CHAR(ARTIKEL.EDAT,'DD-MM-YYYY') EDAT , LAGERBESTAND.BSTNR, LAGERBESTAND.LNR, LAGERBESTAND.MENGE, LAGER.LORT, LAGER.LPLZ FROM ARTIKEL,LAGERBESTAND,LAGER ",
+									("WHERE ARTIKEL.ARTNR=" + csv + " AND LAGERBESTAND.ARTNR=" + csv
+											+ " AND LAGER.LNR= LAGERBESTAND.LNR")));
+							
+							
+							rsMetaAusgabe(sumi(csv));
+							return 1;
 
-					rsMetaAusgabe(executeSQLquery(
-							"SELECT ARTIKEL.ARTNR, ARTIKEL.ARTBEZ, ARTIKEL.MGE, ARTIKEL.PREIS, ARTIKEL.STEU, TO_CHAR(ARTIKEL.EDAT,'DD-MM-YYYY') EDAT , LAGERBESTAND.BSTNR, LAGERBESTAND.LNR, LAGERBESTAND.MENGE, LAGER.LORT, LAGER.LPLZ FROM ARTIKEL,LAGERBESTAND,LAGER ",
-							("WHERE ARTIKEL.ARTNR=" + csv + " AND LAGERBESTAND.ARTNR=" + csv
-									+ " AND LAGER.LNR= LAGERBESTAND.LNR")));
-
-					rsMetaAusgabe(sumi(csv));
-					return 1;
+						} catch (SQLException se)
+						{
+							System.out.println("SQL FEHLER" + se.getMessage());
+							return 0;
+						}
 
 				case 3: //neuer lagerbestand
 
 					String[] csvA = csv.split(";");
+					try
+						{
+
+							int a = Integer.parseInt(csvA[0]), l = Integer.parseInt(csvA[1]),
+									m = Integer.parseInt(csvA[2]);
+							csvA[0] = String.valueOf(a);
+							csvA[1] = String.valueOf(l);
+							csvA[2] = String.valueOf(m);
+
+						} catch (NumberFormatException n)
+						{
+
+							System.out.println("Keine gültige Eingabe: " + n.getMessage());
+							return -2;
+						}
 
 					return executeSQL("INSERT INTO LAGERBESTAND VALUES (null, " + csvA[0] + ", " + csvA[1] + ", "
 							+ csvA[2] + ")");
 
 				case 4: // update bestand
 					String[] csvA2 = csv.split(";");
+					try
+						{
 
+							int a = Integer.parseInt(csvA2[0]), l = Integer.parseInt(csvA2[1]),
+									m = Integer.parseInt(csvA2[2]);
+
+							csvA2[0] = String.valueOf(a);
+							csvA2[1] = String.valueOf(l);
+							csvA2[2] = String.valueOf(m);
+
+						} catch (NumberFormatException n)
+						{
+
+							System.out.println("Keine gültige Eingabe: " + n.getMessage());
+							return 0;
+						}
 					return executeSQL("UPDATE LAGERBESTAND SET LAGERBESTAND.MENGE = " + csvA2[2]
 							+ " WHERE LAGERBESTAND.ARTNR= " + csvA2[0] + " AND LAGERBESTAND.LNR= " + csvA2[1]);
 
+				case 5: //Kundenbestellung
+
+					String[] csvKB = csv.split(";");
+
+					// Lagerbestand aktualisieren
+					sqlHandler(4, (csvKB[0] + ";" + csvKB[1] + ";" + csvKB[2]));
+
+					// neuer Eintrag in KUBEST
+
+					return 0;
 				}
-			return -2;
+			return 0;
 		}
 
-	private ResultSet sumi(String csv) throws SQLException
+	private ResultSet sumi(String artNr) throws SQLException
 		{
-
-			return executeSQLquery("SELECT SUM (LAGERBESTAND.MENGE) Gesamtbestand  FROM LAGERBESTAND",
-					" WHERE LAGERBESTAND.ARTNR = " + csv);
+			try
+				{
+					return executeSQLquery("SELECT SUM (LAGERBESTAND.MENGE) Gesamtbestand  FROM ",
+							"LAGERBESTAND WHERE LAGERBESTAND.ARTNR= " + artNr);
+				} catch (SQLException e)
+				{
+					System.out.println(e.getMessage());
+					return null;
+				}
 		}
 
-	public void jdbcBestellung(String knr, String artnr, String bmenge)
+	public void jdbcBestellung(String csvKb) throws SQLException
 		{
-			
+			String[] csvKB = csvKb.split(";");
+			try
+				{
+
+					int kunNr = Integer.parseInt(csvKB[0]), artnr = Integer.parseInt(csvKB[1]),
+							bestellmenge = Integer.parseInt(csvKB[2]);
+
+					csvKB[0] = String.valueOf(kunNr);
+					csvKB[1] = String.valueOf(artnr);
+					csvKB[2] = String.valueOf(bestellmenge);
+					ResultSet r = sumi(csvKB[1]);
+					r.next();
+					int gesamtBestand = Integer.parseInt(r.getString(1));
+
+					if (bestellmenge <= gesamtBestand)
+						{
+							
+							// neuer bestand wird an eingehenden csvKb angehangen und an SQLHandler übergeben
+							sqlHandler(5, (csvKb + ";" + String.valueOf(gesamtBestand - bestellmenge)));
+
+						}
+
+				} catch (NumberFormatException n)
+				{
+
+					System.out.println("Keine gültige Eingabe: " + n.getMessage());
+
+				}
+
 		}
 }
