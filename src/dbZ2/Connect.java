@@ -13,6 +13,8 @@ import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.LinkedList;
+import java.util.List;
 
 import oracle.jdbc.pool.OracleDataSource;
 
@@ -31,12 +33,13 @@ public class Connect
 
 			String uName;
 			String pW;
-			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-			System.out.println("Please enter username: ");
-			uName = in.readLine();
-			System.out.println("Please enter password: ");
-			pW = in.readLine();
-
+			/*
+			 * BufferedReader in = new BufferedReader(new
+			 * InputStreamReader(System.in));
+			 * System.out.println("Please enter username: "); uName =
+			 * in.readLine(); System.out.println("Please enter password: "); pW
+			 * = in.readLine();
+			 */
 			// Treiber laden
 
 			try
@@ -52,7 +55,7 @@ public class Connect
 			try
 				{
 
-					ods.setURL("jdbc:oracle:thin:" + uName + "/" + pW + "@schelling.nt.fh-koeln.de:1521:xe");
+					ods.setURL("jdbc:oracle:thin:dbprak39/salamistulle@schelling.nt.fh-koeln.de:1521:xe");
 					con = ods.getConnection();
 				} catch (SQLException e)
 				{
@@ -237,8 +240,7 @@ public class Connect
 									"SELECT ARTIKEL.ARTNR, ARTIKEL.ARTBEZ, ARTIKEL.MGE, ARTIKEL.PREIS, ARTIKEL.STEU, TO_CHAR(ARTIKEL.EDAT,'DD-MM-YYYY') EDAT , LAGERBESTAND.BSTNR, LAGERBESTAND.LNR, LAGERBESTAND.MENGE, LAGER.LORT, LAGER.LPLZ FROM ARTIKEL,LAGERBESTAND,LAGER ",
 									("WHERE ARTIKEL.ARTNR=" + csv + " AND LAGERBESTAND.ARTNR=" + csv
 											+ " AND LAGER.LNR= LAGERBESTAND.LNR")));
-							
-							
+
 							rsMetaAusgabe(sumi(csv));
 							return 1;
 
@@ -294,15 +296,42 @@ public class Connect
 				case 5: //Kundenbestellung
 
 					String[] csvKB = csv.split(";");
-
+					lagercheck(csvKB);
 					// Lagerbestand aktualisieren
-					sqlHandler(4, (csvKB[0] + ";" + csvKB[1] + ";" + csvKB[2]));
+					sqlHandler(4, (csvKB[1] + ";" + csvKB[1] + ";" + csvKB[3]));
 
 					// neuer Eintrag in KUBEST
 
 					return 0;
 				}
 			return 0;
+
+		}
+
+	private void lagercheck(String[] csvKB) throws SQLException
+		{
+			int lnr = -1;
+			// Bestände erfassen
+
+			ResultSet s = executeSQLquery("SELECT LAGERBESTAND.MENGE, LGAERBESTAND.LNR FROM LAGERBESTAND ",
+					("WHERE LAGERBESTAND.ARTNR=" + csvKB[1]));
+
+			LinkedList<String[]> bestaende = new LinkedList<String[]>();
+			while (s.next())
+				{
+					String[] bestand = new String[] { s.getString(1), s.getString(2) };
+					bestaende.add(bestand);
+				}
+
+			for (int lager = 0; lager <= bestaende.size(); lager++)
+				{
+
+					if (Integer.parseInt(bestaende.get(lager)[0]) <= Integer.parseInt(csvKB[2]))
+						{
+
+						}
+				}
+
 		}
 
 	private ResultSet sumi(String artNr) throws SQLException
@@ -336,9 +365,9 @@ public class Connect
 
 					if (bestellmenge <= gesamtBestand)
 						{
-							
+
 							// neuer bestand wird an eingehenden csvKb angehangen und an SQLHandler übergeben
-							sqlHandler(5, (csvKb + ";" + String.valueOf(gesamtBestand - bestellmenge)));
+							sqlHandler(5, (csvKb));
 
 						}
 
