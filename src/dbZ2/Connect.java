@@ -32,13 +32,13 @@ public class Connect
 
 			String uName;
 			String pW;
-			/*
-			 * BufferedReader in = new BufferedReader(new
-			 * InputStreamReader(System.in));
-			 * System.out.println("Please enter username: "); uName =
-			 * in.readLine(); System.out.println("Please enter password: "); pW
-			 * = in.readLine();
-			 */
+
+			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+			System.out.println("Please enter username: ");
+			uName = in.readLine();
+			System.out.println("Please enter password: ");
+			pW = in.readLine();
+
 			// Treiber laden
 
 			try
@@ -54,7 +54,7 @@ public class Connect
 			try
 				{
 
-					ods.setURL("jdbc:oracle:thin:dbprak39/salamistulle@schelling.nt.fh-koeln.de:1521:xe");
+					ods.setURL("jdbc:oracle:thin:" + uName + "/" + pW + "@schelling.nt.fh-koeln.de:1521:xe");
 					con = ods.getConnection();
 				} catch (SQLException e)
 				{
@@ -292,16 +292,9 @@ public class Connect
 					return executeSQL("UPDATE LAGERBESTAND SET LAGERBESTAND.MENGE = " + csvA2[2]
 							+ " WHERE LAGERBESTAND.ARTNR= " + csvA2[0] + " AND LAGERBESTAND.LNR= " + csvA2[1]);
 
-				case 5: //Kundenbestellung
+				case 5: // neuer KUBEST Eintrag
+					break;
 
-					String[] csvKB = csv.split(";");
-					lagercheck(csvKB);
-					// Lagerbestand aktualisieren
-					sqlHandler(4, (csvKB[1] + ";" + csvKB[1] + ";" + csvKB[3]));
-
-					// neuer Eintrag in KUBEST
-
-					return 0;
 				}
 			return 0;
 
@@ -309,43 +302,69 @@ public class Connect
 
 	private void lagercheck(String[] csvKB) throws SQLException
 		{
-			int lnr = -1;
-			// Bestände erfassen
+			//Gesamtbestand prüfen
 
-			ResultSet s = executeSQLquery("SELECT LAGERBESTAND.MENGE, LGAERBESTAND.LNR FROM LAGERBESTAND ",
-					("WHERE LAGERBESTAND.ARTNR=" + csvKB[1]));
-
-			LinkedList<String[]> bestaende = new LinkedList<String[]>();
-			while (s.next())
-				{
-					String[] bestand = new String[] { s.getString(1), s.getString(2) };
-					bestaende.add(bestand);
-				}
-
-			// bestände liste nach menge sortieren
-			
-			
-			//für alle Lagerbestände prüfen ob die bestellung aus einem Lager beliefert werden kann
-
-			for (int lager = 0; lager <= bestaende.size(); lager++)
+			try
 				{
 
-					if (Integer.parseInt(bestaende.get(lager)[0]) >= Integer.parseInt(csvKB[2]))
+					int kunNr = Integer.parseInt(csvKB[0]), artnr = Integer.parseInt(csvKB[1]),
+							bestellmenge = Integer.parseInt(csvKB[2]);
+
+					csvKB[0] = String.valueOf(kunNr);
+					csvKB[1] = String.valueOf(artnr);
+					csvKB[2] = String.valueOf(bestellmenge);
+					ResultSet r = sumi(csvKB[1]);
+					r.next();
+					int gesamtBestand = Integer.parseInt(r.getString(1));
+
+					if (bestellmenge <= gesamtBestand)
 						{
-							// SQL Handler Bestand update mit bestaende[0] - csvKB[2] (bestellmenge) auf Lagernnr bestände[1] 
-							int neu= (Integer.parseInt(bestaende.get(lager)[0]))-(Integer.parseInt(csvKB[2]));
-							String neuS = String.valueOf(neu);
-							String updateCSV = csvKB[1]+";"+(bestaende.get(lager)[1])+";"+neuS;
-							sqlHandler(4,updateCSV);
-							// neuer Eintrag in Kubest tabelle
-							
-							break;
+
+							// Bestände erfassen
+
+							ResultSet s = executeSQLquery(
+									"SELECT LAGERBESTAND.MENGE, LGAERBESTAND.LNR FROM LAGERBESTAND ",
+									("WHERE LAGERBESTAND.ARTNR=" + artnr));
+
+							LinkedList<String[]> bestaende = new LinkedList<String[]>();
+							while (s.next())
+								{
+									String[] bestand = new String[] { s.getString(1), s.getString(2) };
+									bestaende.add(bestand);
+								}
+
+							// bestände liste nach menge sortieren
+							//bestaende.sort(arg0);
+
+							//für alle Lagerbestände prüfen ob die bestellung aus einem Lager beliefert werden kann
+
+							for (int lager = 0; lager <= bestaende.size(); lager++)
+								{
+
+									if (Integer.parseInt(bestaende.get(lager)[0]) >= Integer.parseInt(csvKB[2]))
+										{
+											// SQL Handler Bestand update mit bestaende[0] - csvKB[2] (bestellmenge) auf Lagernnr bestände[1] 
+											int neu = (Integer.parseInt(bestaende.get(lager)[0]))
+													- (Integer.parseInt(csvKB[2]));
+											String neuS = String.valueOf(neu);
+											String updateCSV = csvKB[1] + ";" + (bestaende.get(lager)[1]) + ";" + neuS;
+											sqlHandler(4, updateCSV);
+											// neuer Eintrag in Kubest tabelle
+
+											break;
+										} else
+										{
+											// Bestellung auf versch. Lager aufteilen
+
+										}
+								}
 						}
-					else {
-						// Bestellung auf versch. Lager aufteilen
-						
-						//so lange die bestände addieren bis temp >= bestellmenge (csvKB[2])
-					}
+
+				} catch (NumberFormatException n)
+				{
+
+					System.out.println("Keine gültige Eingabe: " + n.getMessage());
+
 				}
 
 		}
@@ -366,30 +385,8 @@ public class Connect
 	public void jdbcBestellung(String csvKb) throws SQLException
 		{
 			String[] csvKB = csvKb.split(";");
-			try
-				{
 
-					int kunNr = Integer.parseInt(csvKB[0]), artnr = Integer.parseInt(csvKB[1]),
-							bestellmenge = Integer.parseInt(csvKB[2]);
-
-					csvKB[0] = String.valueOf(kunNr);
-					csvKB[1] = String.valueOf(artnr);
-					csvKB[2] = String.valueOf(bestellmenge);
-					ResultSet r = sumi(csvKB[1]);
-					r.next();
-					int gesamtBestand = Integer.parseInt(r.getString(1));
-
-					if (bestellmenge <= gesamtBestand)
-						{
-							lagercheck(csvKB);
-						}
-
-				} catch (NumberFormatException n)
-				{
-
-					System.out.println("Keine gültige Eingabe: " + n.getMessage());
-
-				}
+			lagercheck(csvKB);
 
 		}
 }
