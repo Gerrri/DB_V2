@@ -14,7 +14,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.LinkedList;
-import java.util.List;
 
 import oracle.jdbc.pool.OracleDataSource;
 
@@ -323,13 +322,30 @@ public class Connect
 					bestaende.add(bestand);
 				}
 
+			// bestände liste nach menge sortieren
+			
+			
+			//für alle Lagerbestände prüfen ob die bestellung aus einem Lager beliefert werden kann
+
 			for (int lager = 0; lager <= bestaende.size(); lager++)
 				{
 
-					if (Integer.parseInt(bestaende.get(lager)[0]) <= Integer.parseInt(csvKB[2]))
+					if (Integer.parseInt(bestaende.get(lager)[0]) >= Integer.parseInt(csvKB[2]))
 						{
-
+							// SQL Handler Bestand update mit bestaende[0] - csvKB[2] (bestellmenge) auf Lagernnr bestände[1] 
+							int neu= (Integer.parseInt(bestaende.get(lager)[0]))-(Integer.parseInt(csvKB[2]));
+							String neuS = String.valueOf(neu);
+							String updateCSV = csvKB[1]+";"+(bestaende.get(lager)[1])+";"+neuS;
+							sqlHandler(4,updateCSV);
+							// neuer Eintrag in Kubest tabelle
+							
+							break;
 						}
+					else {
+						// Bestellung auf versch. Lager aufteilen
+						
+						//so lange die bestände addieren bis temp >= bestellmenge (csvKB[2])
+					}
 				}
 
 		}
@@ -365,10 +381,7 @@ public class Connect
 
 					if (bestellmenge <= gesamtBestand)
 						{
-
-							// neuer bestand wird an eingehenden csvKb angehangen und an SQLHandler übergeben
-							sqlHandler(5, (csvKb));
-
+							lagercheck(csvKB);
 						}
 
 				} catch (NumberFormatException n)
