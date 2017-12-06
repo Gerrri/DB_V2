@@ -1,4 +1,5 @@
 # Datenbanken
 
 
-Alles findet in der JDBC Verwaltung statt, methoden werden noch ausgelagert in die connect() klasse
+JDBC Verwaltung stellt das User Interface und Menü, von da aus wird eine Verbindung mit connect() aufgebaut.
+Methoden zur Datenbankinteraktion liegen in der connect Klasse.
