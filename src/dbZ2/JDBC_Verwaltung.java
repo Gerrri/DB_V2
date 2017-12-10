@@ -167,10 +167,16 @@ public class JDBC_Verwaltung
 									System.out.println("Bitte geben sie die Bestellmenge ein: ");
 									csvKB += ";" + in.readLine();
 
-									con.jdbcBestellung(csvKB);
+									if (con.jdbcBestellung(csvKB))
+										{
+											System.out.println("\n\nBestellung erfolgreich\n\n");
+										} else
+										{
+											System.out.println("\n\nBestellung nicht möglich\n\n");
+										}
 
 									break;
-									
+
 								case 6: //JDBC INSERT
 
 									System.out.println("Datensätze werden aus ARTIKEL.CSV importiert...\n\n");

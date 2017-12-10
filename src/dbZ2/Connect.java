@@ -5,7 +5,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.sql.Connection;
+
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -13,6 +15,10 @@ import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.LinkedList;
 
 import oracle.jdbc.pool.OracleDataSource;
@@ -293,15 +299,64 @@ public class Connect
 							+ " WHERE LAGERBESTAND.ARTNR= " + csvA2[0] + " AND LAGERBESTAND.LNR= " + csvA2[1]);
 
 				case 5: // neuer KUBEST Eintrag
-					break;
+
+					String[] csvKB = csv.split(";");// 0 KunNr 1 ArtNr 2 BMenge
+
+					// create Calendar instance with actual date
+					Date now = new Date();
+					Calendar calendar = new GregorianCalendar();
+					calendar.setTime(now);
+
+					// add 14 days to calendar instance
+					calendar.add(Calendar.DAY_OF_MONTH, 14);
+
+					// get the new date instance
+					Date future = calendar.getTime();
+
+					// print out the dates...
+					DateFormat df = new SimpleDateFormat("dd-MM-yyyy");
+
+					String bestDate = df.format(now);
+
+					String liefDate = df.format(future);
+
+					// RECHNUNGSBETRAG ERMITTELN
+
+					ResultSet temp = executeSQLquery("SELECT ARTIKEL.PREIS FROM ARTIKEL WHERE ARTIKEL.ARTNR=",
+							csvKB[1]);
+					temp.next();
+					double preis = Float.valueOf(temp.getString(1));
+					preis *= Double.valueOf(csvKB[2]);
+					BigDecimal myDec = new BigDecimal(preis);
+					myDec = myDec.setScale(2, BigDecimal.ROUND_HALF_UP);
+					preis = myDec.doubleValue();
+
+					return executeSQL("INSERT INTO KUBEST VALUES (null," + csvKB[0] + ", " + csvKB[1] + ", " + csvKB[2]
+							+ ",TO_DATE ('" + bestDate + "','DD-MM-YYYY'),TO_DATE ('" + liefDate + "','DD-MM-YYYY'),1,"
+							+ preis + ")");
 
 				}
 			return 0;
 
 		}
 
-	private void lagercheck(String[] csvKB) throws SQLException
+	private ResultSet sumi(String artNr) throws SQLException
 		{
+			try
+				{
+					return executeSQLquery("SELECT SUM (LAGERBESTAND.MENGE) Gesamtbestand  FROM ",
+							"LAGERBESTAND WHERE LAGERBESTAND.ARTNR= " + artNr);
+				} catch (SQLException e)
+				{
+					System.out.println(e.getMessage());
+					return null;
+				}
+		}
+
+	public boolean jdbcBestellung(String csvKb) throws SQLException
+		{
+			String[] csvKB = csvKb.split(";");
+
 			//Gesamtbestand prüfen
 
 			try
@@ -323,70 +378,85 @@ public class Connect
 							// Bestände erfassen
 
 							ResultSet s = executeSQLquery(
-									"SELECT LAGERBESTAND.MENGE, LGAERBESTAND.LNR FROM LAGERBESTAND ",
+									"SELECT LAGERBESTAND.MENGE, LAGERBESTAND.LNR FROM LAGERBESTAND ",
 									("WHERE LAGERBESTAND.ARTNR=" + artnr));
 
-							LinkedList<String[]> bestaende = new LinkedList<String[]>();
+							LinkedList<int[]> bestaende = new LinkedList<int[]>();
 							while (s.next())
 								{
-									String[] bestand = new String[] { s.getString(1), s.getString(2) };
+									int[] bestand = new int[] { Integer.valueOf(s.getString(1)),
+											Integer.valueOf(s.getString(2)) };
 									bestaende.add(bestand);
 								}
 
 							// bestände liste nach menge sortieren
-							//bestaende.sort(arg0);
+							//Collections.sort(bestaende);
+							Collections.sort(bestaende, new Comparator<int[]>()
+							{
+								public int compare(int[] a, int[] b)
+									{
+										if (b[0] - a[0] == 0) //if equals
+											{
+												return a[1] - b[1];//recompare 
+											} else
+											return b[0] - a[0];
+									}
+							});
 
 							//für alle Lagerbestände prüfen ob die bestellung aus einem Lager beliefert werden kann
 
-							for (int lager = 0; lager <= bestaende.size(); lager++)
+							if ((bestaende.get(0)[0]) >= Integer.parseInt(csvKB[2]))
 								{
+									// SQL Handler Bestand update mit bestaende[0] - csvKB[2] (bestellmenge) auf Lagernnr bestände[1] 
+									int neu = (bestaende.get(0)[0]) - (Integer.parseInt(csvKB[2]));
+									String neuS = String.valueOf(neu);
+									String updateCSV = csvKB[1] + ";" + (bestaende.get(0)[1]) + ";" + neuS;
+									sqlHandler(4, updateCSV);
+									// neuer Eintrag in Kubest tabelle
 
-									if (Integer.parseInt(bestaende.get(lager)[0]) >= Integer.parseInt(csvKB[2]))
+									sqlHandler(5, csvKb);
+									return true;
+								} else
+								{
+									int bmeng_temp = bestellmenge; // temporär bestellmenge
+									for (int best = 0; best < bestaende.size(); best++)
 										{
-											// SQL Handler Bestand update mit bestaende[0] - csvKB[2] (bestellmenge) auf Lagernnr bestände[1] 
-											int neu = (Integer.parseInt(bestaende.get(lager)[0]))
-													- (Integer.parseInt(csvKB[2]));
-											String neuS = String.valueOf(neu);
-											String updateCSV = csvKB[1] + ";" + (bestaende.get(lager)[1]) + ";" + neuS;
+
+											//  Bestellung auf versch. Lager aufteilen
+
+											int lager_nachher_bes;
+											int aktLager_bes = Integer.valueOf(bestaende.get(best)[0]);
+
+											if (bmeng_temp > aktLager_bes)
+												{
+													lager_nachher_bes = 0;
+													bmeng_temp -= aktLager_bes;
+													// Da komplettes  Lager Leer - dann zum nächsten 
+												} else
+												{
+													lager_nachher_bes = aktLager_bes - bmeng_temp; //Aktueller besant - (rest bestell menge) =neur bestand 
+													bmeng_temp = 0;
+												}
+
+											String updateCSV = csvKB[1] + ";" + (bestaende.get(best)[1]) + ";"
+													+ lager_nachher_bes; //Bestand 
 											sqlHandler(4, updateCSV);
-											// neuer Eintrag in Kubest tabelle
-
-											break;
-										} else
-										{
-											// Bestellung auf versch. Lager aufteilen
 
 										}
-								}
-						}
+									sqlHandler(5, csvKb);
+									return true;
 
-				} catch (NumberFormatException n)
+								}
+						} //endif bestellung möglich?
+					return false;
+				} catch (
+
+			NumberFormatException n)
 				{
 
 					System.out.println("Keine gültige Eingabe: " + n.getMessage());
-
+					return false;
 				}
-
-		}
-
-	private ResultSet sumi(String artNr) throws SQLException
-		{
-			try
-				{
-					return executeSQLquery("SELECT SUM (LAGERBESTAND.MENGE) Gesamtbestand  FROM ",
-							"LAGERBESTAND WHERE LAGERBESTAND.ARTNR= " + artNr);
-				} catch (SQLException e)
-				{
-					System.out.println(e.getMessage());
-					return null;
-				}
-		}
-
-	public void jdbcBestellung(String csvKb) throws SQLException
-		{
-			String[] csvKB = csvKb.split(";");
-
-			lagercheck(csvKB);
 
 		}
 }
