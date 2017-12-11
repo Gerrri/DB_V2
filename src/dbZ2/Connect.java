@@ -246,7 +246,7 @@ public class Connect
 									("WHERE ARTIKEL.ARTNR=" + csv + " AND LAGERBESTAND.ARTNR=" + csv
 											+ " AND LAGER.LNR= LAGERBESTAND.LNR")));
 
-							rsMetaAusgabe(sumi(csv));
+							System.out.println("Gesamtbestand: " + (sumi(csv)));
 							return 1;
 
 						} catch (SQLException se)
@@ -340,16 +340,20 @@ public class Connect
 
 		}
 
-	private ResultSet sumi(String artNr) throws SQLException
+	private int sumi(String artNr) throws SQLException
 		{
 			try
 				{
-					return executeSQLquery("SELECT SUM (LAGERBESTAND.MENGE) Gesamtbestand  FROM ",
+					ResultSet r = executeSQLquery("SELECT SUM (LAGERBESTAND.MENGE) Gesamtbestand  FROM ",
 							"LAGERBESTAND WHERE LAGERBESTAND.ARTNR= " + artNr);
+
+					r.next();
+					return Integer.parseInt(r.getString(1));
+
 				} catch (SQLException e)
 				{
 					System.out.println(e.getMessage());
-					return null;
+					return -1;
 				}
 		}
 
@@ -368,9 +372,8 @@ public class Connect
 					csvKB[0] = String.valueOf(kunNr);
 					csvKB[1] = String.valueOf(artnr);
 					csvKB[2] = String.valueOf(bestellmenge);
-					ResultSet r = sumi(csvKB[1]);
-					r.next();
-					int gesamtBestand = Integer.parseInt(r.getString(1));
+
+					int gesamtBestand = sumi(csvKB[1]);
 
 					if (bestellmenge <= gesamtBestand)
 						{
@@ -434,7 +437,7 @@ public class Connect
 													// Da komplettes  Lager Leer - dann zum nächsten 
 												} else
 												{
-													lager_nachher_bes = aktLager_bes - bmeng_temp; //Aktueller besant - (rest bestell menge) =neur bestand 
+													lager_nachher_bes = aktLager_bes - bmeng_temp; //Aktueller bestand - (rest bestell menge) =neuer bestand 
 													bmeng_temp = 0;
 												}
 
@@ -444,6 +447,7 @@ public class Connect
 
 										}
 									sqlHandler(5, csvKb);
+									
 									return true;
 
 								}
@@ -458,5 +462,11 @@ public class Connect
 					return false;
 				}
 
+		}
+
+	void rechnung()
+		{
+			
+			
 		}
 }
