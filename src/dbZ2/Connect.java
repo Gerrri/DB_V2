@@ -1,10 +1,12 @@
 package dbZ2;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.sql.Connection;
 
@@ -199,7 +201,7 @@ public class Connect
 				}
 		}
 
-	public int sqlHandler(int c, String csv) throws SQLException, NumberFormatException
+	public int sqlHandler(int c, String csv) throws SQLException, NumberFormatException, IOException
 		{
 			switch (c)
 				{
@@ -331,10 +333,14 @@ public class Connect
 					myDec = myDec.setScale(2, BigDecimal.ROUND_HALF_UP);
 					preis = myDec.doubleValue();
 
-					return executeSQL("INSERT INTO KUBEST VALUES (null," + csvKB[0] + ", " + csvKB[1] + ", " + csvKB[2]
+					// Eintrag machen
+					executeSQL("INSERT INTO KUBEST VALUES (null," + csvKB[0] + ", " + csvKB[1] + ", " + csvKB[2]
 							+ ",TO_DATE ('" + bestDate + "','DD-MM-YYYY'),TO_DATE ('" + liefDate + "','DD-MM-YYYY'),1,"
 							+ preis + ")");
 
+					//Rechnung erstellen
+
+					return rechnung(csv + ";" + liefDate + ";" + preis);
 				}
 			return 0;
 
@@ -357,7 +363,7 @@ public class Connect
 				}
 		}
 
-	public boolean jdbcBestellung(String csvKb) throws SQLException
+	public boolean jdbcBestellung(String csvKb) throws SQLException, IOException
 		{
 			String[] csvKB = csvKb.split(";");
 
@@ -447,12 +453,17 @@ public class Connect
 
 										}
 									sqlHandler(5, csvKb);
-									
+
 									return true;
 
 								}
 						} //endif bestellung möglich?
-					return false;
+					else
+						{
+							System.out.println("\nNicht geügend Lagerbestand des Artikels vorhanden.Es fehlen "
+									+ (bestellmenge - gesamtBestand) + " zur gewünschten Menge.\n\n");
+							return false;
+						}
 				} catch (
 
 			NumberFormatException n)
@@ -464,9 +475,92 @@ public class Connect
 
 		}
 
-	void rechnung()
+	int rechnung(String insert) throws SQLException, IOException
 		{
-			
-			
+
+			String[] csvIn = insert.split(";"); // 0=KNR;1=ARTNR;2=BMENGE;3=LDAT;4=RBET
+			ResultSet ben = executeSQLquery("SELECT KUBEST.BENR FROM KUBEST", " WHERE KUBEST.KNR= " + csvIn[0]
+					+ " AND KUBEST.ARTNR= " + csvIn[1] + " AND KUBEST.REBT= " + csvIn[4]);
+
+			ResultSet rech = executeSQLquery(
+					"SELECT KUBEST.KNR KNr, KUNDE.KNAME Name, KUNDE.STRASSE Straße, KUNDE.PLZ, KUNDE.ORT Ort, TO_CHAR(KUBEST.LDAT,'DD-MM-YYYY') LDatum , KUBEST.BEMENGE Menge, KUBEST.REBT Betrag FROM KUNDE,KUBEST",
+					" WHERE KUBEST.KNR= " + csvIn[0] + " AND KUBEST.ARTNR= " + csvIn[1] + " AND KUBEST.REBT= "
+							+ csvIn[4] + " AND KUBEST.KNR = KUNDE.KNR");
+
+			ben.next();
+			String benr = String.valueOf(ben.getInt("BENR"));
+
+			if (rsMetaDateiAusgabe(rech, "AB" + csvIn[0] + "B" + benr + ".txt"))
+				{
+					System.out.println("\nRechnung angelegt!\n");
+					return 1;
+				} else
+				{
+					return -1;
+				}
+
+		}
+
+	boolean rsMetaDateiAusgabe(ResultSet in, String dateipfad) throws SQLException, IOException
+		{
+				{
+					try
+						{
+							ResultSetMetaData rsmd = in.getMetaData();
+							System.out.println("\n\n");
+							String columnNames = "";
+							String data = "";
+							int a = 0;
+							File rechnung = new File(dateipfad);
+							PrintWriter pr = new PrintWriter(rechnung);
+							//Vorhandenene Datei loeschen 
+							if (rechnung.exists())
+								{
+									rechnung.delete();
+								}
+							//Datei neu erstellen
+							rechnung.createNewFile();
+
+							for (int i = 1; i <= rsmd.getColumnCount(); i++)
+								{
+									columnNames += rsmd.getColumnName(i) + "\t\t\t";
+								}
+							//in.first();
+							while (in.next())
+								{
+									data = "";
+									for (int i = 1; i <= rsmd.getColumnCount(); i++)
+										{
+											if (in.getString(i).length() >= 8)
+												{
+													if (in.getString(i).length() >= 16)
+														{
+															data += in.getString(i) + "\t";
+														} else
+														{
+															data += in.getString(i) + "\t\t";
+														}
+												} else
+												{
+													data += in.getString(i) + "\t\t\t";
+												}
+										}
+									if (a == 0)
+										{
+											pr.println(columnNames);
+											a++;
+										}
+									pr.println(data);
+								}
+							in.close();
+							pr.close();
+							return true;
+						} catch (NullPointerException e)
+						{
+							System.out.println("Bestellung nicht in Datenbank!");
+							return false;
+						}
+				}
+
 		}
 }

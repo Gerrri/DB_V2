@@ -1,0 +1,2 @@
+KNR			NAME			STRAßE			PLZ			ORT			LDATUM			MENGE			BETRAG			
+3			Jan-Keno Jansen		Dellbrücker Hauptstraße 23	51065			Köln			26-12-2017		2			7			

@@ -1,0 +1,2 @@
+KNR			NAME			STRAßE			PLZ			ORT			LDATUM			MENGE			BETRAG			
+4			Volker Racho		Meisenweg 3		50825			Köln			26-12-2017		43			150.5			

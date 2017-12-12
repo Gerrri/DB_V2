@@ -1,0 +1,2 @@
+KNR			NAME			STRAßE			PLZ			ORT			LDATUM			MENGE			BETRAG			
+2			Achim Bartschel		Gotenring 1		50679			Köln			26-12-2017		2			11.98			
