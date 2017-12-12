@@ -105,7 +105,7 @@ public class Connect
 						{
 							System.out.println("Exception geworfen!\n" + a.getMessage());
 							br1.close();
-							return -1;
+
 						}
 
 				}

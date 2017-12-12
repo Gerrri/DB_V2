@@ -1,0 +1,2 @@
+KNR			NAME			STRAﬂE			PLZ			ORT			LDATUM			MENGE			BETRAG			
+3			Jan-Keno Jansen		Hauptstraﬂe 23		51065			Berlin			26-12-2017		6			21			
