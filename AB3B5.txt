@@ -1,0 +1,2 @@
+KNR			NAME			STRAßE			PLZ			ORT			LDATUM			MENGE			BETRAG			
+3			Firma 3			Drei Str 3		33333			Drei			27-12-2017		12			24			
